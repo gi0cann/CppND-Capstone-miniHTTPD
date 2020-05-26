@@ -25,5 +25,5 @@ This is a web server supporting http/1.0 and http/1.1 written in C++.
 ## Windows
 1. Clone this repo.
 2. Make a build directory in the top level directory: `mkdir build && cd build`
-3. Compile: `cmake .. && msbuild minihttpd.sln`
-4. Run it: `Debug\minihttpd.exe`.
+3. Compile: `cmake .. && msbuild minihttpd.sln /p:Configuration=Release`
+4. Run it: `Release\minihttpd.exe`.

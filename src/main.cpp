@@ -4,6 +4,7 @@
 #include <csignal>
 
 #include "portable_sockets.h"
+#include "Server.h"
 
 void signal_handler(int signal) {
     // Cleanup Winsock
@@ -15,7 +16,7 @@ void signal_handler(int signal) {
 
 int main() {
 
-    std::string port = "8089";
+    std::string portstr = "8089";
 
     // register SIGINT handler
     signal(SIGINT, signal_handler);
@@ -25,53 +26,18 @@ int main() {
         return 1;
     }
     
-    std::cout << "Ready to use socket API." << "\n";
-
-    // Configure local address
-    struct addrinfo hints;
-    std::memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-
-    struct addrinfo *bind_address;
-    getaddrinfo(0, port.c_str(), &hints, &bind_address);
-
-    // Create socket
-    SOCKET server_socket;
-    server_socket = socket(bind_address->ai_family,
-            bind_address->ai_socktype, bind_address->ai_protocol);
-    if (!ISVALIDSOCKET(server_socket)) {
-        std::cerr << "Failed to create server socket. Error: " 
-            << GETSOCKETERRNO() << "\n";
-        return 1;
-    }
-
-    // Make local address reusable
-    int option = 1;
-    if (setsockopt(server_socket, SOL_SOCKET, 
-                SO_REUSEADDR, (void*)&option, sizeof(option)) < 0) {
-        std::cerr << "Failed to set SO_REUSEADDR. Error: " 
-            << GETSOCKETERRNO() << "\n";
-        return 1;
-    }
+    // Create Server object
+    Server server = Server(portstr);
 
     // Bind socket
-    if (bind(server_socket, bind_address->ai_addr, 
-                (int)bind_address->ai_addrlen) < 0) {
-        std::cerr << "Failed to bind server socket. Error: " 
-            << GETSOCKETERRNO() << "\n";
+    if (!server.Bind()) {
         return 1;
     }
-    freeaddrinfo(bind_address);
 
     // Listen
-    if (listen(server_socket, 10) < 0) {
-        std::cerr << "Failed to listen on port " << port << ". Error: " 
-            << GETSOCKETERRNO() << "\n";
+    if (!server.Listen(10)) {
         return 1;
     }
-    std::cout << "Listening on port " << port << "\n";
 
     // Server loop. Handle incoming connections in an infinite loop.
     while (true) {
@@ -79,8 +45,7 @@ int main() {
         // Accept incoming connections
         struct sockaddr_storage client_address;
         socklen_t client_len = sizeof(client_address);
-        SOCKET client_socket = accept(server_socket, 
-                (struct sockaddr*) &client_address, &client_len);
+        SOCKET client_socket = server.Accept(client_address);
         if (!ISVALIDSOCKET(client_socket)) {
             std::cerr << "Failed to accept incomming client connection. Error: " 
                 << GETSOCKETERRNO() << "\n";
@@ -118,7 +83,7 @@ int main() {
     }
     
     // Close server socket
-    CLOSESOCKET(server_socket);
+    server.closeSocket();
 
 
     return 0;

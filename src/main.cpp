@@ -1,52 +1,31 @@
-#if defined(_WIN32)
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
-
-#else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <errno.h>
-#endif
-
 #include <iostream>
-#include <cstring>
 #include <string>
+#include <cstring>
+#include <csignal>
 
-#if defined(_WIN32)
-#define ISVALIDSOCKET(s) ((s) != INVALID_SOCKET)
-#define CLOSESOCKET(s) closesocket(s)
-#define GETSOCKETERRNO() (WSAGetLastError())
+#include "portable_sockets.h"
 
-#else
-#define ISVALIDSOCKET(s) ((s) >= 0)
-#define CLOSESOCKET(s) close(s)
-#define SOCKET int
-#define GETSOCKETERRNO() (errno)
-#endif
+void signal_handler(int signal) {
+    // Cleanup Winsock
+    cleanup_sockets();
 
+    std::cout << "Bye..." << "\n";
+    exit(signal);
+}
 
 int main() {
 
     std::string port = "8089";
 
-// Initialize Winsock
-#if defined(_WIN32)
-    WSADATA d;
-    if (WSAStartup(MAKEWORD(2, 2), &d)) {
-        std::cerr << "Failed to initialize.\n" << "\n";
+    // register SIGINT handler
+    signal(SIGINT, signal_handler);
+
+    // Initialize Winsock
+    if (!init_sockets()) {
         return 1;
     }
-#endif
     
-    std::cout << "Ready to use socket API.\n" << "\n";
+    std::cout << "Ready to use socket API." << "\n";
 
     // Configure local address
     struct addrinfo hints;
@@ -68,9 +47,18 @@ int main() {
         return 1;
     }
 
+    // Make local address reusable
+    int option = 1;
+    if (setsockopt(server_socket, SOL_SOCKET, 
+                SO_REUSEADDR, (void*)&option, sizeof(option)) < 0) {
+        std::cerr << "Failed to set SO_REUSEADDR. Error: " 
+            << GETSOCKETERRNO() << "\n";
+        return 1;
+    }
+
     // Bind socket
-    if (bind(server_socket,
-                bind_address->ai_addr, (int)bind_address->ai_addrlen) < 0) {
+    if (bind(server_socket, bind_address->ai_addr, 
+                (int)bind_address->ai_addrlen) < 0) {
         std::cerr << "Failed to bind server socket. Error: " 
             << GETSOCKETERRNO() << "\n";
         return 1;
@@ -132,13 +120,7 @@ int main() {
     // Close server socket
     CLOSESOCKET(server_socket);
 
-// Cleanup Winsock
-#if defined(_WIN32)
-    WSACleanup();
-#endif
-
 
     return 0;
-
 
 }

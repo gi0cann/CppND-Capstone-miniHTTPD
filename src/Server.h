@@ -4,6 +4,7 @@
 #include <string>
 #include <exception>
 #include "portable_sockets.h"
+#include "Client.h"
 
 struct ServerSocketException : public std::exception {
     const char *what() const throw () {
@@ -25,7 +26,7 @@ class Server {
         ~Server();
 
         void createSocket();
-        SOCKET Accept(struct sockaddr_storage &client_address);
+        Client Accept(struct sockaddr_storage &client_address);
         bool Bind();
         bool Listen(int backlog);
         void closeSocket();

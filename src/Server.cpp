@@ -64,11 +64,12 @@ bool Server::Listen(int backlog) {
     return true;
 }
 
-SOCKET Server::Accept(struct sockaddr_storage &client_address) {
+Client Server::Accept(struct sockaddr_storage &client_address) {
     socklen_t client_len = sizeof(client_address);
     SOCKET client_socket = accept(_socket, 
             (struct sockaddr*) &client_address, &client_len);
-    return client_socket;
+    Client csocket = Client(client_socket, client_address);
+    return csocket;
 }
 
 void Server::closeSocket() {

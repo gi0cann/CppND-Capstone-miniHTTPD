@@ -5,6 +5,7 @@
 
 #include "portable_sockets.h"
 #include "Server.h"
+#include "Client.h"
 
 void signal_handler(int signal) {
     // Cleanup Winsock
@@ -45,25 +46,21 @@ int main() {
         // Accept incoming connections
         struct sockaddr_storage client_address;
         socklen_t client_len = sizeof(client_address);
-        SOCKET client_socket = server.Accept(client_address);
-        if (!ISVALIDSOCKET(client_socket)) {
+        Client client_socket = server.Accept(client_address);
+        if (!ISVALIDSOCKET(client_socket.getSocket())) {
             std::cerr << "Failed to accept incomming client connection. Error: " 
                 << GETSOCKETERRNO() << "\n";
             continue;
         }
 
         // Display client connection
-        char address_buffer[100];
-        getnameinfo((struct sockaddr*)&client_address,
-                client_len, address_buffer, sizeof(address_buffer), 0, 0,
-                NI_NUMERICHOST);
-        std::cout << "Client connected from " << address_buffer << ".\n"; 
+        std::cout << "Client connected from " << client_socket.getNameInfo() << ".\n"; 
         
         // Get data from client
-        char request[1024];
-        int bytes_received = recv(client_socket, request, 1024, 0);
-        std::cout << "Received " << bytes_received << " bytes from " 
-            << address_buffer << ".\n";
+        std::string request = client_socket.getRequest();
+        std::cout << "\nStart request" << "\n";
+        std::cout << request << "\n";
+        std::cout << "End request" << "\n\n";
         
         // Send response to client
         const char *response =
@@ -71,14 +68,15 @@ int main() {
             "Connection: close\r\n"
             "Content-Type: text/plain\r\n\r\n"
             "<h1>Welcome to MiniHTTPD!</h>";
-        int bytes_sent = send(client_socket, response, (int)std::strlen(response), 0);
+        std::string responseStr = std::string(response);
+        int bytes_sent = client_socket.Send(responseStr);
         std::cout << "Sent " << bytes_sent << " of " 
             << std::strlen(response) << " bytes.\n";
         
-        std::cout << "Closing client(" << address_buffer << ") connection.\n";
+        std::cout << "Closing client(" << client_socket.getNameInfo() << ") connection.\n";
 
         // Close client socket
-        CLOSESOCKET(client_socket);
+        client_socket.closeSocket();
 
     }
     

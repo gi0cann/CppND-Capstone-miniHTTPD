@@ -2,10 +2,12 @@
 #include <string>
 #include <cstring>
 #include <csignal>
+#include <thread>
 
 #include "portable_sockets.h"
 #include "Server.h"
 #include "Client.h"
+#include "Request.h"
 
 void signal_handler(int signal) {
     // Cleanup Winsock
@@ -61,6 +63,45 @@ int main() {
         std::cout << "\nStart request" << "\n";
         std::cout << request << "\n";
         std::cout << "End request" << "\n\n";
+        
+        try {
+            HttpRequest requestObj(request);
+        } catch(InvalidHttpRequestException& e) {
+            std::cout << e.what() << "\n";
+            const char *response =
+                "HTTP/1.1 400 Bad Request\r\n"
+                "Connection: close\r\n"
+                "Content-Type: text/plain\r\n\r\n"
+                "<h1>Your client issued an illegal request</h>";
+            std::string responseStr = std::string(response);
+            int bytes_sent = client_socket.Send(responseStr);
+            std::cout << "Sent " << bytes_sent << " of " 
+                << std::strlen(response) << " bytes.\n";
+            
+            std::cout << "Closing client(" << client_socket.getNameInfo() << ") connection.\n";
+
+            // Close client socket
+            client_socket.closeSocket();
+
+        } catch(InvalidHttpVersionException& e) {
+            std::cout << e.what() << "\n";
+            const char *response =
+                "HTTP/1.1 505 HTTP Version Not Supported\r\n"
+                "Connection: close\r\n"
+                "Content-Type: text/plain\r\n\r\n"
+                "<h1>This web server only supports HTTP/1.1</h>";
+            std::string responseStr = std::string(response);
+            int bytes_sent = client_socket.Send(responseStr);
+            std::cout << "Sent " << bytes_sent << " of " 
+                << std::strlen(response) << " bytes.\n";
+            
+            std::cout << "Closing client(" << client_socket.getNameInfo() << ") connection.\n";
+
+            // Close client socket
+            client_socket.closeSocket();
+            
+        }
+        //std::this_thread::sleep_for(std::chrono::seconds(20));
         
         // Send response to client
         const char *response =

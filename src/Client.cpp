@@ -21,14 +21,18 @@ Client::~Client() {
 std::string Client::getRequest() {
     int bytes_received, total_bytes = 0;
     char data[1024];
-    while (true) {
-        bytes_received = recv(_socket, data, 1024, 0);
+    while ((bytes_received = recv(_socket, data, 1024, 0)) > 0) {
         total_bytes += bytes_received;
+        /*
         if (bytes_received == 0) {
             break;
         }
         if (bytes_received == -1) {
             break;
+        }
+        */
+        if (bytes_received < 1024) {
+            data[bytes_received] = '\x00';
         }
         _request.append(data);
     }

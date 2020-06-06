@@ -20,7 +20,7 @@ void Server::createSocket() {
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-    getaddrinfo(0, _port.c_str(), &hints, &bind_address);
+    getaddrinfo("0.0.0.0", _port.c_str(), &hints, &bind_address);
 
     // Create socket
     _socket = socket(bind_address->ai_family,

@@ -24,18 +24,23 @@ struct InvalidHttpVersionException : public std::exception {
 class HttpRequest {
     
     public:
+        HttpRequest() {}
         HttpRequest(std::string request_str);
         ~HttpRequest();
 
         // getter/setters
+        std::string getMethod() { return _method; }
+        std::string getPath() { return _path; }
+        std::string getURI() { return _uri; }
+        std::string getVersion() { return _http_version; }
+        std::string getBody() { return _body; }
+        std::string getHost() { return _host; }
+        std::string getQuery() { return _query; }
+        std::map<std::string, std::string> getHeaders() { return _headers; }
         void parseRequest(std::string request_str);
-        //std::string parseMethod(std::string request_str);
-        //std::string parseUri(std::string request_str);
-        //std::map<std::string, std::string> parseHeaders(std::string request_str);
-        //std::string parseBody(std::string request_str);
-        //std::string parseHttpVersion(std::string request_str);
 
     private:
+        std::string _requestStr;
         std::string _method;
         std::string _uri;
         std::string _http_version;

@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include "portable_sockets.h"
+#include "Request.h"
 
 class Client {
 

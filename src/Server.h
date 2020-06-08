@@ -2,6 +2,7 @@
 #define SERVER_H
 
 #include <string>
+#include <memory>
 #include <exception>
 #include "portable_sockets.h"
 #include "Client.h"
@@ -26,7 +27,7 @@ class Server {
         ~Server();
 
         void createSocket();
-        Client Accept(struct sockaddr_storage &client_address);
+        std::unique_ptr<Client> Accept(struct sockaddr_storage &client_address);
         bool Bind();
         bool Listen(int backlog);
         void closeSocket();

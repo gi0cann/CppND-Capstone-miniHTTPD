@@ -4,13 +4,17 @@
 #include <csignal>
 #include <thread>
 #include <fstream>
-#include <future>
+#include <memory>
+#include <vector>
+#include <mutex>
 
 #include "portable_sockets.h"
 #include "Server.h"
 #include "Client.h"
 #include "Request.h"
 #include "Response.h"
+
+std::mutex mtx;
 
 void signal_handler(int signal) {
     // Cleanup Winsock
@@ -20,15 +24,17 @@ void signal_handler(int signal) {
     exit(signal);
 }
 
-void request_handler(Client &client) {
+void request_handler(std::unique_ptr<Client> client) {
+    //std::this_thread::sleep_for(std::chrono::seconds(4));
     HttpRequest requestObj;
     HttpResponse responseObj;
+    std::lock_guard<std::mutex> lck(mtx);
     // Display client connection
-    std::cout << "Client connected from " << client.getNameInfo() << ".\n"; 
+    std::cout << "Client connected from " << client->getNameInfo() << ".\n"; 
     
     // Get data from client
-    std::string request = client.getRequest();
-    SOCKET _s = client.getSocket();
+    std::string request = client->getRequest();
+    SOCKET _s = client->getSocket();
     printf("socket ponter: %p", &_s);
     std::cout << "\nStart request" << "\n";
     std::cout << request << "\n";
@@ -45,14 +51,14 @@ void request_handler(Client &client) {
             "Content-Type: text/plain\r\n\r\n"
             "<h1>Your client issued an illegal request</h>";
         std::string responseStr = std::string(response);
-        int bytes_sent = client.Send(responseStr);
+        int bytes_sent = client->Send(responseStr);
         std::cout << "Sent " << bytes_sent << " of " 
             << std::strlen(response) << " bytes.\n";
         
-        std::cout << "Closing client(" << client.getNameInfo() << ") connection.\n";
+        std::cout << "Closing client(" << client->getNameInfo() << ") connection.\n";
 
         // Close client socket
-        client.closeSocket();
+        client->closeSocket();
 
     } catch(InvalidHttpVersionException& e) {
         std::cout << e.what() << "\n";
@@ -62,14 +68,14 @@ void request_handler(Client &client) {
             "Content-Type: text/plain\r\n\r\n"
             "<h1>This web server only supports HTTP/1.1</h>";
         std::string responseStr = std::string(response);
-        int bytes_sent = client.Send(responseStr);
+        int bytes_sent = client->Send(responseStr);
         std::cout << "Sent " << bytes_sent << " of " 
             << std::strlen(response) << " bytes.\n";
         
-        std::cout << "Closing client(" << client.getNameInfo() << ") connection.\n";
+        std::cout << "Closing client(" << client->getNameInfo() << ") connection.\n";
 
         // Close client socket
-        client.closeSocket();
+        client->closeSocket();
         
     }
     
@@ -77,14 +83,15 @@ void request_handler(Client &client) {
     
     // Send response to client
     std::string response = responseObj.generateResponse();
-    int bytes_sent = client.Send(response);
+    int bytes_sent = client->Send(response);
     std::cout << "Sent " << bytes_sent << " of " 
         << response.size() << " bytes.\n";
     
-    std::cout << "Closing client(" << client.getNameInfo() << ") connection.\n";
+    std::cout << "Closing client(" << client->getNameInfo() << ") connection.\n";
 
     // Close client socket
-    client.closeSocket();
+    client->closeSocket();
+    mtx.unlock();
 
 }
 
@@ -113,21 +120,30 @@ int main() {
         return 1;
     }
 
+    std::vector<std::thread> client_threads;
+
     // Server loop. Handle incoming connections in an infinite loop.
     while (true) {
 
         // Accept incoming connections
         struct sockaddr_storage client_address;
-        Client client_socket = server.Accept(client_address);
-        SOCKET _s = client_socket.getSocket();
+        std::unique_ptr<Client> client_socket = server.Accept(client_address);
+        SOCKET _s = client_socket->getSocket();
         printf("socket ponter: %p", &_s);
-        if (!ISVALIDSOCKET(client_socket.getSocket())) {
+        if (!ISVALIDSOCKET(client_socket->getSocket())) {
             std::cerr << "Failed to accept incomming client connection. Error: " 
                 << GETSOCKETERRNO() << "\n";
             continue;
         }
     
-        request_handler(client_socket);
+        client_threads.emplace_back(std::thread(request_handler, std::move(client_socket)));
+
+        if (client_threads.size() >= 50) {
+            for (auto &c : client_threads) {
+                c.join();
+            }
+            client_threads.clear();
+        }
 
     }
 

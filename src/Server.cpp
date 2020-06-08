@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <cstring>
 #include "Server.h"
 
@@ -64,11 +65,11 @@ bool Server::Listen(int backlog) {
     return true;
 }
 
-Client Server::Accept(struct sockaddr_storage &client_address) {
+std::unique_ptr<Client> Server::Accept(struct sockaddr_storage &client_address) {
     socklen_t client_len = sizeof(client_address);
     SOCKET client_socket = accept(_socket, 
             (struct sockaddr*) &client_address, &client_len);
-    Client csocket = Client(client_socket, client_address);
+    std::unique_ptr<Client> csocket = std::make_unique<Client>(client_socket, client_address);
     return csocket;
 }
 

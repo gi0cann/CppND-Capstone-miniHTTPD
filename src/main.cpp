@@ -23,7 +23,6 @@ void signal_handler(int signal) {
 }
 
 void request_handler(std::unique_ptr<Client> client) {
-    //std::this_thread::sleep_for(std::chrono::seconds(4));
     HttpRequest requestObj;
     HttpResponse responseObj;
     std::lock_guard<std::mutex> lck(mtx);

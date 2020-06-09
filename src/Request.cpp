@@ -84,8 +84,8 @@ void HttpRequest::parseRequest(std::string request_str) {
     // get header
     int count = 1;
     std::string key, value;
-    std::string::size_type key_pos, value_pos;
-    for (line; std::getline(request_stream, line);) {
+    std::string::size_type key_pos;
+    for (; std::getline(request_stream, line);) {
         count++;
         if (line == "\r") {
             break;

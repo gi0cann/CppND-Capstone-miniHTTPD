@@ -42,6 +42,82 @@ These files contain the HttpResponse class. The HttpResponse class constructor t
 * cl & msbuild (Windows)
   * Windows: recommend using [MSVC 2019](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019)
 
+## Rubric items
+
+### The project demonstrates an understanding of C++ functions and control structures.
+src/main.cpp line 127 - 149. The application makes use of an infinite while loop to accept incoming connections.
+
+### The project reads data from a file and process the data, or the program writes data to a file.
+src/HttpResponse.cpp line 7 - 29. The HttpResponse class constructor reads data from a file and adds it to the response body.
+
+### The project uses Object Oriented Programming techniques.
+src/HttpResponse.h
+src/HttpResponse.cpp
+src/HttpRequest.h
+src/HttpRequest.cpp
+src/Client.h
+src/Client.cpp
+src/Server.h
+src/Server.cpp
+
+### Classes use appropriate access specifiers for class members
+src/HttpResponse.h
+src/HttpResponse.cpp
+src/HttpRequest.h
+src/HttpRequest.cpp
+src/Client.h
+src/Client.cpp
+src/Server.h
+src/Server.cpp
+
+### Classes abstract implementation details from their interfaces.
+src/HttpResponse.h
+src/HttpResponse.cpp
+src/HttpRequest.h
+src/HttpRequest.cpp
+src/Client.h
+src/Client.cpp
+src/Server.h
+src/Server.cpp
+
+### Classes encapsulate behavior.
+src/HttpResponse.h
+src/HttpResponse.cpp
+src/HttpRequest.h
+src/HttpRequest.cpp
+src/Client.h
+src/Client.cpp
+src/Server.h
+src/Server.cpp
+
+### Overloaded functions allow the same function to operate on different parameters.
+src/HttpResponse.h line 11 - 12
+
+### The project makes use of references in function declarations.
+src/Server.cpp line 68 - 74
+src/Response.cpp line 6 - 29
+
+### The project uses destructors appropriately.
+src/Server.cpp line 11 - 14
+src/Client.cpp line 17 - 20
+
+### The project uses scope / Resource Acquisition Is Initialization (RAII) where appropriate.
+src/Server.cpp line 11 - 14
+
+### The project uses move semantics to move data, instead of copying it, where possible.
+src/main.cpp line 140
+
+### The project uses smart pointers instead of raw pointers.
+src/main.cpp line 131
+src/Server.cpp line 68 - 74
+
+### The project uses multithreading.
+src/main.cpp line 140 - 147
+
+### A mutex or lock is used in the project.
+src/main.cpp line 17
+src/main.cpp line 31
+
 ## Basic Build Instructions
 
 ### Linux, Mac

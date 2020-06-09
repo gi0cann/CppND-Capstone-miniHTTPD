@@ -131,3 +131,13 @@ src/main.cpp line 31
 2. Make a build directory in the top level directory: `mkdir build && cd build`
 3. Compile: `cmake .. && msbuild minihttpd.sln /p:Configuration=Release`
 4. Run it: `Release\minihttpd.exe`.
+
+## Usage
+
+### Start the server
+./minihttpd 
+
+### Add the files you want the server to serve in the directory "build/htdocs" 
+
+### Connect to the server using your web browser by navigating to "http://localhost:8089"
+

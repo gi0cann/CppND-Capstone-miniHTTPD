@@ -19,8 +19,6 @@ std::mutex mtx;
 void signal_handler(int signal) {
     // Cleanup Winsock
     cleanup_sockets();
-
-    std::cout << "Bye..." << "\n";
     exit(signal);
 }
 
@@ -79,8 +77,6 @@ void request_handler(std::unique_ptr<Client> client) {
         
     }
     
-    //std::this_thread::sleep_for(std::chrono::seconds(20));
-    
     // Send response to client
     std::string response = responseObj.generateResponse();
     int bytes_sent = client->Send(response);
@@ -96,11 +92,12 @@ void request_handler(std::unique_ptr<Client> client) {
 }
 
 int main() {
+    
+    // register SIGINT handler
+    signal(SIGINT, signal_handler);
 
     std::string portstr = "8089";
 
-    // register SIGINT handler
-    signal(SIGINT, signal_handler);
 
     // Initialize Winsock
     if (!init_sockets()) {
@@ -128,8 +125,6 @@ int main() {
         // Accept incoming connections
         struct sockaddr_storage client_address;
         std::unique_ptr<Client> client_socket = server.Accept(client_address);
-        SOCKET _s = client_socket->getSocket();
-        printf("socket ponter: %p", &_s);
         if (!ISVALIDSOCKET(client_socket->getSocket())) {
             std::cerr << "Failed to accept incomming client connection. Error: " 
                 << GETSOCKETERRNO() << "\n";

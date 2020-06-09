@@ -1,6 +1,6 @@
 # CPPND: Capstone MiniHTTPD
 
-This is a web server supporting http/1.0 and http/1.1 written in C++.
+This is a web server supporting HTTP/1.1 written in C++.
 
 ## Project Structure
 MiniHTTPD is a minimal HTTP (HyperText Transfer Protocol) implement. It supports handling GET request from an HTTP client like a web browser. It will parse incoming GET requests and generate the correct response based on the requested resource.
